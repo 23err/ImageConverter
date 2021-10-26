@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">ImageConverter</string>
+    <string name="open_and_convert">Открыть и конвертировать jpeg в png</string>
+</resources>
