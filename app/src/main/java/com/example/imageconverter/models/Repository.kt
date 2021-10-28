@@ -6,42 +6,50 @@ import com.example.imageconverter.App
 import com.example.imageconverter.R
 import com.example.imageconverter.presenters.IRepository
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
 
 class Repository : IRepository {
-    override fun getFileFromDrawable(): Bitmap {
+    override fun getFileFromDrawable(): Single<Bitmap> {
 
-        return BitmapFactory.decodeResource(App.instance.resources, R.drawable.maxresdefault)
-    }
-
-    override fun getFile(fileName: String): Bitmap {
-        return BitmapFactory.decodeFile(fileName)
-    }
-
-    override fun saveFile(byteArray: ByteArray): String {
-        val file = File(App.instance.applicationContext.getExternalFilesDir(null), CAT_FILE_NAME)
-        if (file.exists()) {
-            file.delete()
+        return Single.fromCallable {
+            BitmapFactory.decodeResource(
+                App.instance.resources,
+                R.drawable.maxresdefault
+            )
         }
-        file.createNewFile()
+    }
 
-        var fileOutputStream: FileOutputStream? = null
-        try {
-            fileOutputStream = FileOutputStream(file).apply {
-                write(byteArray)
-                flush()
+    override fun getFile(fileName: String): Single<Bitmap> {
+        return Single.fromCallable{BitmapFactory.decodeFile(fileName)}
+    }
+
+    override fun saveFile(byteArray: ByteArray): Single<String> {
+        return Single.fromCallable {
+            val file =
+                File(App.instance.applicationContext.getExternalFilesDir(null), CAT_FILE_NAME)
+            if (file.exists()) {
+                file.delete()
             }
-        } catch (e: Throwable) {
-            fileOutputStream?.close()
-            throw e
-        }
+            file.createNewFile()
 
-        return file.absolutePath
+            var fileOutputStream: FileOutputStream? = null
+            try {
+                fileOutputStream = FileOutputStream(file).apply {
+                    write(byteArray)
+                    flush()
+                }
+            } catch (e: Throwable) {
+                fileOutputStream?.close()
+                throw e
+            }
+            file.absolutePath
+        }
     }
 
-    companion object{
-        private val CAT_FILE_NAME ="cat.png"
+    companion object {
+        private val CAT_FILE_NAME = "cat.png"
     }
 }

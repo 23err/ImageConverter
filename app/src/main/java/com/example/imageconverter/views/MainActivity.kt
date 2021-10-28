@@ -1,8 +1,8 @@
 package com.example.imageconverter.views
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.imageconverter.R
 import com.example.imageconverter.databinding.ActivityMainBinding
@@ -16,14 +16,15 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     private lateinit var binding: ActivityMainBinding
     private val presenter by moxyPresenter { MainPresenter() }
     private val alertDialog: AlertDialog by lazy {
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(MainActivity@this)
             .setMessage(R.string.do_converting)
             .setCancelable(false)
-            .setNegativeButton(R.string.cancel) { p0, p1 ->
+            .setNegativeButton(R.string.cancel) { dialog, number ->
                 presenter.cancelPressed()
             }
             .create()
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,28 +32,8 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         setContentView(binding.root)
         binding.apply {
             btnConvert.setOnClickListener {
+                showDialog()
                 presenter.convertPressed()
-
-                val file = File(applicationContext.getExternalFilesDir(null), "cat.png")
-                if (file.exists()) {
-                    file.delete()
-                }
-                file.createNewFile()
-                var fileOutputStream: FileOutputStream? = null
-                try {
-                    fileOutputStream = FileOutputStream(file)
-                    fileOutputStream?.apply {
-                        val bt = BitmapFactory.decodeResource(resources, R.drawable.maxresdefault)
-
-                        bt.compress(Bitmap.CompressFormat.PNG, 100, this)
-                        flush()
-                        close()
-                    }
-                } catch (e: Throwable) {
-                    fileOutputStream?.close()
-                    throw e
-                }
-                println("file : ${file.absolutePath}")
             }
             ivJpeg.setImageResource(R.drawable.maxresdefault)
         }
@@ -67,7 +48,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     }
 
     override fun cleanResult() {
-        binding.ivPng.setImageResource(0)
+        binding.ivPng.setImageDrawable(null)
     }
 
     override fun showResult(bitmap: Bitmap) {
